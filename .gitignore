@@ -1,0 +1,26 @@
+# --- Node dependencies ---
+node_modules/
+
+# --- Vite / React build output ---
+dist/
+frontend/dist/
+
+# Keep the built FHEVM SDK dist (local SDK)
+!fhevm-sdk/dist/
+
+# --- Hardhat build artifacts ---
+hardhat/artifacts/
+hardhat/cache/
+hardhat/typechain-types/
+coverage/
+
+# --- Env files ---
+.env
+.env.*
+frontend/.env
+hardhat/.env
+
+# --- OS / editor files ---
+.DS_Store
+.vscode/
+.idea/
