@@ -1,29 +1,39 @@
-// @ts-ignore
-
-import { useEffect } from "react";
-import { useFhevm } from "../../fhevm-sdk/dist/index.js";
+import { useState, useEffect } from "react";
 import { useAccount, useChainId } from "wagmi";
+import { initializeFheInstance, getFheInstance } from "../lib/fhevm";
 
 export default function useFhevmSetup() {
-  const { isInitialized, initialize } = useFhevm();
-  const { isConnected } = useAccount();
-  const chainId = useChainId();
+ const { isConnected } = useAccount();
+ const chainId = useChainId();
 
-  useEffect(() => {
-    if (!isConnected) return;
-    if (chainId !== 11155111) {
-      console.warn("⚠ Switch to Sepolia testnet before initializing FHEVM.");
-      return;
-    }
-    if (!isInitialized) {
-      if ((window as any).RelayerSDK || (window as any).relayerSDK) {
-        console.log("Initializing FHEVM after wallet and network ready…");
-        initialize(); 
-      } else {
-        console.error("❌ Missing Relayer SDK in index.html");
-      }
-    }
-  }, [isConnected, chainId, isInitialized, initialize]);
+ const [isInitialized, setInitialized] = useState(false);
+ const [isInitializing, setInitializing] = useState(false);
 
-  return { isInitialized };
+ useEffect(() => {
+ if (!isConnected || chainId !== 11155111 || isInitialized) return;
+
+ if (!(window as any).RelayerSDK && !(window as any).relayerSDK) {
+ console.warn(" Relayer SDK not yet loaded…");
+ return;
+ }
+
+ console.log(" Initializing FHEVM…");
+ setInitializing(true);
+
+ initializeFheInstance()
+ .then(() => {
+ if (getFheInstance()) {
+ console.log(" FHEVM Ready!");
+ setInitialized(true);
+ } else {
+ console.error(" FHEVM returned null instance!");
+ }
+ })
+ .catch((err) => {
+ console.error(" Failed to initialize FHEVM:", err);
+ })
+ .finally(() => setInitializing(false));
+ }, [isConnected, chainId]);
+
+ return { isInitialized, isInitializing };
 }
